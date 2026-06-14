@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🍱 오늘 점심 뭐 먹지?</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f4f1ea;
+      --card: #ffffff;
+      --primary: #ff7043;
+      --primary-dark: #f4511e;
+      --text: #2d2a26;
+      --muted: #8a8378;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+        "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    header { text-align: center; }
+    header h1 { font-size: 1.6rem; }
+    header p { color: var(--muted); margin-top: 6px; font-size: 0.92rem; }
+
+    /* 카테고리 필터 칩 */
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+    .chip {
+      border: 1.5px solid #e0dacf;
+      background: var(--card);
+      color: var(--muted);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .chip:hover { border-color: var(--primary); }
+    .chip.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    /* 슬롯머신 디스플레이 */
+    .slot {
+      background: var(--card);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 40px 24px;
+      text-align: center;
+      overflow: hidden;
+    }
+    .slot-name { font-size: 2.2rem; font-weight: 700; }
+    .slot-cat { color: var(--muted); margin-top: 8px; font-size: 0.9rem; }
+    .slot.win { animation: pop 0.45s ease; }
+    @keyframes pop {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    /* 추천 버튼 */
+    .pick-btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      padding: 18px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: background 0.15s ease, transform 0.1s ease;
+    }
+    .pick-btn:hover:not(:disabled) { background: var(--primary-dark); }
+    .pick-btn:active:not(:disabled) { transform: scale(0.98); }
+    .pick-btn:disabled { background: #d8b3a3; cursor: not-allowed; }
+
+    /* 추천 기록 */
+    .history-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .history h2 { font-size: 1rem; color: var(--text); }
+    .clear-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.85rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 8px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .clear-btn:hover { background: #eee7da; color: var(--primary-dark); }
+    .history ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .history li {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.95rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+    .history .h-name { font-weight: 600; }
+    .history .h-cat {
+      background: #eee7da;
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.75rem;
+    }
+    .history .h-time { margin-left: auto; color: var(--muted); font-size: 0.8rem; }
+    .history .empty { color: var(--muted); font-size: 0.9rem; text-align: center; padding: 8px; }
+
+    /* 메뉴 관리 패널 */
+    .manage > summary {
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      list-style: none;
+      padding: 4px 0;
+      user-select: none;
+    }
+    .manage > summary::-webkit-details-marker { display: none; }
+    .manage > summary::before { content: "▸ "; color: var(--muted); }
+    .manage[open] > summary::before { content: "▾ "; }
+    .manage-body { margin-top: 12px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* 메뉴 추가 폼 */
+    .add-form { display: flex; flex-wrap: wrap; gap: 8px; }
+    .add-form input,
+    .add-form select {
+      border: 1.5px solid #e0dacf;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      background: var(--card);
+      color: var(--text);
+    }
+    .add-form input:focus,
+    .add-form select:focus { outline: none; border-color: var(--primary); }
+    .add-form .in-name { flex: 1 1 120px; min-width: 0; }
+    .add-form .in-cat { flex: 0 0 auto; }
+    .add-form .add-btn {
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .add-form .add-btn:hover { background: var(--primary-dark); }
+    .add-error { color: var(--primary-dark); font-size: 0.82rem; min-height: 1em; }
+
+    /* 카테고리별 메뉴 목록 */
+    .cat-group h3 {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cat-group h3 .count {
+      background: #eee7da;
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 1px 8px;
+      font-size: 0.75rem;
+    }
+    .menu-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .menu-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--card);
+      border: 1.5px solid #e0dacf;
+      border-radius: 999px;
+      padding: 6px 8px 6px 12px;
+      font-size: 0.9rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+    .menu-tag .del {
+      border: none;
+      background: #f0e9dd;
+      color: var(--muted);
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 0.85rem;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .menu-tag .del:hover { background: var(--primary); color: #fff; }
+    .cat-group .empty { color: var(--muted); font-size: 0.85rem; }
+    .reset-menus {
+      align-self: flex-start;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.82rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 8px;
+      text-decoration: underline;
+    }
+    .reset-menus:hover { color: var(--primary-dark); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>🍱 오늘 점심 뭐 먹지?</h1>
+      <p>고민은 그만! 버튼 한 번이면 메뉴가 정해져요.</p>
+    </header>
+
+    <div class="filters" id="filters"></div>
+
+    <div class="slot" id="slot">
+      <div class="slot-name" id="slotName">버튼을 눌러주세요</div>
+      <div class="slot-cat" id="slotCat">&nbsp;</div>
+    </div>
+
+    <button class="pick-btn" id="pickBtn">🎰 추천받기</button>
+
+    <div class="history">
+      <div class="history-head">
+        <h2>📜 추천 기록</h2>
+        <button class="clear-btn" id="clearBtn">지우기</button>
+      </div>
+      <ul id="historyList">
+        <li class="empty">아직 추천 기록이 없어요.</li>
+      </ul>
+    </div>
+
+    <details class="manage">
+      <summary>🛠️ 메뉴 관리</summary>
+      <div class="manage-body">
+        <form class="add-form" id="addForm">
+          <input class="in-name" id="inName" type="text" placeholder="메뉴 이름" aria-label="메뉴 이름" />
+          <select class="in-cat" id="inCat" aria-label="카테고리"></select>
+          <button class="add-btn" type="submit">추가</button>
+          <div class="add-error" id="addError"></div>
+        </form>
+        <div id="menuGroups"></div>
+        <button class="reset-menus" id="resetMenusBtn" type="button">기본 메뉴로 초기화</button>
+      </div>
+    </details>
+  </div>
+
+  <script>
+    // ===== 기본 내장 메뉴 데이터 =====
+    const DEFAULT_MENUS = [
+      // 한식
+      { name: "김치찌개", category: "한식" },
+      { name: "비빔밥", category: "한식" },
+      { name: "불고기", category: "한식" },
+      { name: "된장찌개", category: "한식" },
+      { name: "제육볶음", category: "한식" },
+      { name: "냉면", category: "한식" },
+      // 중식
+      { name: "짜장면", category: "중식" },
+      { name: "짬뽕", category: "중식" },
+      { name: "탕수육", category: "중식" },
+      { name: "마라탕", category: "중식" },
+      { name: "양꼬치", category: "중식" },
+      // 양식
+      { name: "파스타", category: "양식" },
+      { name: "피자", category: "양식" },
+      { name: "햄버거", category: "양식" },
+      { name: "스테이크", category: "양식" },
+      { name: "리조또", category: "양식" },
+      // 일식
+      { name: "초밥", category: "일식" },
+      { name: "라멘", category: "일식" },
+      { name: "돈카츠", category: "일식" },
+      { name: "우동", category: "일식" },
+      { name: "규동", category: "일식" },
+      // 분식
+      { name: "떡볶이", category: "분식" },
+      { name: "김밥", category: "분식" },
+      { name: "라면", category: "분식" },
+      { name: "순대", category: "분식" },
+      { name: "튀김", category: "분식" },
+    ];
+
+    const CATEGORIES = ["전체", "한식", "중식", "양식", "일식", "분식"];
+    // "전체"를 제외한 실제 메뉴 카테고리 (추가/그룹핑용)
+    const MENU_CATEGORIES = CATEGORIES.filter((c) => c !== "전체");
+    // 카테고리별 고유 색상 (시인성용)
+    const CATEGORY_COLOR = {
+      한식: "#e2574c", // 빨강
+      중식: "#e8932b", // 주황
+      양식: "#3f8edb", // 파랑
+      일식: "#3aa76d", // 초록
+      분식: "#9b59b6", // 보라
+    };
+
+    // ===== 영속성 (localStorage) =====
+    const STORAGE_KEY = "lunchPicker.v1";
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return {};
+        return JSON.parse(raw) || {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({ selectedCategories, lastPicked, history, menus })
+        );
+      } catch (e) {
+        /* 저장 실패(시크릿 모드 등)는 무시 — 메모리로만 동작 */
+      }
+    }
+
+    // ===== 상태 =====
+    const saved = loadState();
+    // 다중 선택: 비어 있으면 '전체'(모든 카테고리)로 간주
+    let selectedCategories = (function () {
+      if (Array.isArray(saved.selectedCategories)) {
+        return saved.selectedCategories.filter((c) => MENU_CATEGORIES.includes(c));
+      }
+      // 이전 단일 선택 버전 마이그레이션
+      if (MENU_CATEGORIES.includes(saved.selectedCategory)) {
+        return [saved.selectedCategory];
+      }
+      return [];
+    })();
+    // 메뉴 형태 검증 (조작/구버전 데이터로 'undefined' 표시되는 것 방지)
+    function isValidMenu(m) {
+      return (
+        m &&
+        typeof m.name === "string" &&
+        MENU_CATEGORIES.includes(m.category)
+      );
+    }
+    let lastPicked = isValidMenu(saved.lastPicked) ? saved.lastPicked : null;
+    let history = Array.isArray(saved.history)
+      ? saved.history.filter(
+          (h) => isValidMenu(h) && typeof h.time === "string"
+        )
+      : [];
+    // 저장된 메뉴가 유효하면 사용, 아니면 기본 메뉴로 시작
+    let menus =
+      Array.isArray(saved.menus) && saved.menus.length > 0
+        ? saved.menus.filter(
+            (m) => m && m.name && MENU_CATEGORIES.includes(m.category)
+          )
+        : DEFAULT_MENUS.slice();
+    let isSpinning = false;
+
+    // ===== DOM =====
+    const filtersEl = document.getElementById("filters");
+    const slotEl = document.getElementById("slot");
+    const slotNameEl = document.getElementById("slotName");
+    const slotCatEl = document.getElementById("slotCat");
+    const pickBtn = document.getElementById("pickBtn");
+    const historyListEl = document.getElementById("historyList");
+    const clearBtn = document.getElementById("clearBtn");
+    const addFormEl = document.getElementById("addForm");
+    const inNameEl = document.getElementById("inName");
+    const inCatEl = document.getElementById("inCat");
+    const addErrorEl = document.getElementById("addError");
+    const menuGroupsEl = document.getElementById("menuGroups");
+    const resetMenusBtn = document.getElementById("resetMenusBtn");
+
+    // ===== 카테고리 필터 렌더 =====
+    function renderFilters() {
+      filtersEl.innerHTML = "";
+      CATEGORIES.forEach((cat) => {
+        const isAll = cat === "전체";
+        // '전체'는 아무것도 선택 안 했을 때 활성, 나머지는 선택 목록에 있으면 활성
+        const active = isAll
+          ? selectedCategories.length === 0
+          : selectedCategories.includes(cat);
+
+        const btn = document.createElement("button");
+        btn.className = "chip" + (active ? " active" : "");
+        btn.textContent = cat;
+        // 카테고리별 색상으로 시인성 부여 (전체는 기본 테마색)
+        const color = CATEGORY_COLOR[cat];
+        if (color) {
+          if (active) {
+            btn.style.background = color;
+            btn.style.borderColor = color;
+            btn.style.color = "#fff";
+          } else {
+            btn.style.color = color;
+            btn.style.borderColor = color;
+          }
+        }
+        btn.addEventListener("click", () => {
+          if (isSpinning) return;
+          if (isAll) {
+            selectedCategories = []; // 전체 = 선택 해제
+          } else if (selectedCategories.includes(cat)) {
+            selectedCategories = selectedCategories.filter((c) => c !== cat);
+          } else {
+            selectedCategories = [...selectedCategories, cat];
+          }
+          renderFilters();
+          saveState();
+        });
+        filtersEl.appendChild(btn);
+      });
+    }
+
+    // ===== 후보 풀 =====
+    function getPool() {
+      let pool =
+        selectedCategories.length === 0
+          ? menus.slice()
+          : menus.filter((m) => selectedCategories.includes(m.category));
+
+      // 최근 먹은(직전 추천) 메뉴 제외 — 단, 제외하면 후보가 비는 경우는 그대로 둔다
+      if (lastPicked) {
+        const filtered = pool.filter((m) => m.name !== lastPicked.name);
+        if (filtered.length > 0) pool = filtered;
+      }
+      return pool;
+    }
+
+    function pickRandom(pool) {
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    // ===== 슬롯에 메뉴 표시 =====
+    function paintSlot(menu) {
+      slotNameEl.textContent = menu.name;
+      slotCatEl.textContent = menu.category;
+      slotCatEl.style.color = CATEGORY_COLOR[menu.category] || "var(--muted)";
+    }
+
+    // ===== 슬롯머신 애니메이션 =====
+    function spin() {
+      if (isSpinning) return;
+      const pool = getPool();
+      if (pool.length === 0) {
+        slotNameEl.textContent = "메뉴가 없어요";
+        slotCatEl.textContent = "‘메뉴 관리’에서 추가해 주세요";
+        return;
+      }
+
+      isSpinning = true;
+      pickBtn.disabled = true;
+      slotEl.classList.remove("win");
+
+      const finalMenu = pickRandom(pool);
+      let interval = 60; // ms, 점점 늘어남(감속)
+      const startTime = Date.now();
+      const duration = 1600;
+
+      function tick() {
+        const elapsed = Date.now() - startTime;
+        if (elapsed >= duration) {
+          // 정지
+          paintSlot(finalMenu);
+          slotEl.classList.add("win");
+          lastPicked = finalMenu;
+          addHistory(finalMenu);
+          isSpinning = false;
+          pickBtn.disabled = false;
+          return;
+        }
+        // 돌아가는 중: 랜덤 메뉴 표시
+        paintSlot(pickRandom(pool));
+        interval += 12; // 감속
+        setTimeout(tick, interval);
+      }
+      tick();
+    }
+
+    // ===== 기록 =====
+    function addHistory(menu) {
+      const now = new Date();
+      const time =
+        String(now.getHours()).padStart(2, "0") +
+        ":" +
+        String(now.getMinutes()).padStart(2, "0");
+      history.unshift({ ...menu, time });
+      if (history.length > 10) history.pop();
+      renderHistory();
+      saveState();
+    }
+
+    function renderHistory() {
+      if (history.length === 0) {
+        historyListEl.innerHTML =
+          '<li class="empty">아직 추천 기록이 없어요.</li>';
+        return;
+      }
+      historyListEl.innerHTML = "";
+      history.forEach((h) => {
+        const li = document.createElement("li");
+        const name = document.createElement("span");
+        name.className = "h-name";
+        name.textContent = h.name;
+        const cat = document.createElement("span");
+        cat.className = "h-cat";
+        cat.textContent = h.category;
+        const hColor = CATEGORY_COLOR[h.category];
+        if (hColor) {
+          cat.style.background = hColor;
+          cat.style.color = "#fff";
+        }
+        const time = document.createElement("span");
+        time.className = "h-time";
+        time.textContent = h.time;
+        li.append(name, cat, time);
+        historyListEl.appendChild(li);
+      });
+    }
+
+    // ===== 메뉴 관리 =====
+    // 카테고리 select 옵션 채우기
+    function populateCatSelect() {
+      inCatEl.innerHTML = "";
+      MENU_CATEGORIES.forEach((cat) => {
+        const opt = document.createElement("option");
+        opt.value = cat;
+        opt.textContent = cat;
+        inCatEl.appendChild(opt);
+      });
+    }
+
+    // 카테고리별 메뉴 목록 렌더
+    function renderMenuGroups() {
+      menuGroupsEl.innerHTML = "";
+      MENU_CATEGORIES.forEach((cat) => {
+        const items = menus.filter((m) => m.category === cat);
+        const group = document.createElement("div");
+        group.className = "cat-group";
+
+        const h3 = document.createElement("h3");
+        h3.textContent = cat + " ";
+        const catColor = CATEGORY_COLOR[cat];
+        if (catColor) h3.style.color = catColor;
+        const count = document.createElement("span");
+        count.className = "count";
+        count.textContent = items.length;
+        if (catColor) {
+          count.style.background = catColor;
+          count.style.color = "#fff";
+        }
+        h3.appendChild(count);
+        group.appendChild(h3);
+
+        const tags = document.createElement("div");
+        tags.className = "menu-tags";
+        if (items.length === 0) {
+          const empty = document.createElement("span");
+          empty.className = "empty";
+          empty.textContent = "메뉴 없음";
+          tags.appendChild(empty);
+        } else {
+          items.forEach((m) => {
+            const tag = document.createElement("span");
+            tag.className = "menu-tag";
+            if (catColor) tag.style.borderColor = catColor;
+            const label = document.createElement("span");
+            label.textContent = m.name;
+            const del = document.createElement("button");
+            del.className = "del";
+            del.type = "button";
+            del.textContent = "×";
+            del.title = m.name + " 삭제";
+            del.addEventListener("click", () => deleteMenu(m));
+            tag.append(label, del);
+            tags.appendChild(tag);
+          });
+        }
+        group.appendChild(tags);
+        menuGroupsEl.appendChild(group);
+      });
+    }
+
+    // 메뉴 추가
+    function addMenu(e) {
+      e.preventDefault();
+      addErrorEl.textContent = "";
+      const name = inNameEl.value.trim();
+      const category = inCatEl.value;
+
+      if (!name) {
+        addErrorEl.textContent = "메뉴 이름을 입력해 주세요.";
+        return;
+      }
+      // 같은 카테고리 내 중복 방지
+      const dup = menus.some(
+        (m) => m.category === category && m.name === name
+      );
+      if (dup) {
+        addErrorEl.textContent = "이미 같은 카테고리에 있는 메뉴예요.";
+        return;
+      }
+
+      menus.push({ name, category });
+      inNameEl.value = "";
+      inNameEl.focus();
+      renderMenuGroups();
+      saveState();
+    }
+
+    // 메뉴 삭제
+    function deleteMenu(menu) {
+      menus = menus.filter(
+        (m) => !(m.name === menu.name && m.category === menu.category)
+      );
+      // 삭제한 메뉴가 직전 추천이었다면 제외 기준에서도 해제
+      if (lastPicked && lastPicked.name === menu.name) lastPicked = null;
+      renderMenuGroups();
+      saveState();
+    }
+
+    // 기본 메뉴로 초기화
+    function resetMenus() {
+      if (!confirm("메뉴를 기본 목록으로 되돌릴까요? 추가/삭제한 내용이 사라져요.")) return;
+      menus = DEFAULT_MENUS.slice();
+      renderMenuGroups();
+      saveState();
+    }
+
+    // ===== 기록 지우기 =====
+    clearBtn.addEventListener("click", () => {
+      if (isSpinning) return;
+      history = [];
+      lastPicked = null;
+      renderHistory();
+      saveState();
+    });
+
+    // ===== 메뉴 관리 이벤트 =====
+    addFormEl.addEventListener("submit", addMenu);
+    resetMenusBtn.addEventListener("click", resetMenus);
+
+    // ===== 초기화 =====
+    pickBtn.addEventListener("click", spin);
+    renderFilters();
+    renderHistory();
+    populateCatSelect();
+    renderMenuGroups();
+    // 새로고침 후에도 마지막 추천 메뉴를 슬롯에 복원
+    if (lastPicked) paintSlot(lastPicked);
+  </script>
+</body>
+</html>

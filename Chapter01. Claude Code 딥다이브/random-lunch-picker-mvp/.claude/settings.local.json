@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node scripts/lint.mjs)",
+      "Bash(node scripts/build.mjs)",
+      "Bash(node scripts/test.mjs)"
+    ]
+  }
+}
