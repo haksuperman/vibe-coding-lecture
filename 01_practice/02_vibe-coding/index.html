@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>카드 내역서 분석기</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <span class="brand-badge">🔒 브라우저에서만 처리 · 어디에도 전송 안 함</span>
+    <h1>내 소비, <span class="grad">한눈에</span> 분석</h1>
+    <p>카드사·은행에서 받은 CSV 또는 Excel(xls/xlsx) 내역서를 올리면, 어디에 얼마를 썼는지 깔끔하게 정리해 드려요.</p>
+  </header>
+
+  <main>
+    <!-- 업로드 영역 -->
+    <section id="upload-section">
+      <div id="dropzone" class="dropzone">
+        <div class="dropzone-inner">
+          <div class="dropzone-icon">📄</div>
+          <p class="dropzone-title">파일을 여기에 끌어다 놓거나 클릭해서 선택하세요</p>
+          <p class="dropzone-hint">이용일자 · 가맹점명 · 이용금액 컬럼이 포함된 카드 내역서 (.csv, .xls, .xlsx)</p>
+          <input type="file" id="file-input" accept=".csv,.xls,.xlsx,.xlsm,.xlsb,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden />
+        </div>
+      </div>
+      <div class="sample-link">
+        <button id="load-sample" type="button">샘플 데이터로 먼저 둘러보기</button>
+      </div>
+      <div id="parse-error" class="error-box" hidden></div>
+    </section>
+
+    <!-- 컬럼 매핑 확인 -->
+    <section id="mapping-section" hidden>
+      <div class="card mapping-card">
+        <h2>컬럼이 이렇게 인식되었어요</h2>
+        <p class="mapping-sub">자동으로 맞춘 결과예요. 틀렸다면 직접 골라주세요.</p>
+        <div class="mapping-grid">
+          <label>날짜 <select id="map-date"></select></label>
+          <label>가맹점 <select id="map-merchant"></select></label>
+          <label>금액 <select id="map-amount"></select></label>
+          <label>카테고리 <select id="map-category"></select></label>
+        </div>
+        <button id="reanalyze" type="button" class="primary-btn">이 설정으로 다시 분석</button>
+        <button id="reset" type="button" class="ghost-btn">다른 파일 올리기</button>
+      </div>
+    </section>
+
+    <!-- 분석 결과 -->
+    <section id="dashboard" hidden>
+      <div id="summary-cards" class="summary-cards"></div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h2>카테고리별 지출</h2>
+          <p class="card-sub">어떤 항목에 가장 많이 썼는지 비중으로 확인하세요</p>
+          <div id="category-chart" class="donut-wrap"></div>
+        </div>
+        <div class="card">
+          <h2>요일별 지출 패턴</h2>
+          <p class="card-sub">무슨 요일에 지갑이 가장 많이 열렸을까요</p>
+          <div id="weekday-chart" class="col-chart"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>월별 지출 추이</h2>
+        <p class="card-sub">달이 지날수록 소비가 늘었는지 줄었는지</p>
+        <div id="monthly-chart" class="bar-chart"></div>
+      </div>
+
+      <div class="card">
+        <h2>가장 많이 쓴 곳 TOP 10</h2>
+        <p class="card-sub">지출이 집중된 가맹점·거래처</p>
+        <table id="top-merchants" class="data-table"></table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span>모든 분석은 브라우저에서만 이루어집니다. 새로고침하면 데이터가 사라져요.</span>
+  </footer>
+
+  <script src="xlsx.full.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
