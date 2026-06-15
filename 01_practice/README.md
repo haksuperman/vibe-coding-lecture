@@ -1,4 +1,4 @@
-# Chapter 01. Claude Code 딥다이브
+# 01_practice
 
 이 챕터의 실습 프로젝트입니다.
 
