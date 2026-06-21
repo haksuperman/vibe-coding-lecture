@@ -5,7 +5,9 @@
   "type": "module",
   "description": "채팅방 CSV를 받아 요약 · 액션 아이템을 만들어 주는 MVP",
   "scripts": {
-    "start": "node api/server.js"
+    "start": "node api/server.js",
+    "test": "node --test",
+    "test:coverage": "node --test --experimental-test-coverage"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

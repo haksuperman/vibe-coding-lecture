@@ -12,9 +12,11 @@
 cp .env.example .env   # 그다음 OPENAI_API_KEY 채우기
 npm install
 npm start               # node api/server.js → http://localhost:3000
+npm test                # node --test → tests/ 의 핵심 순수함수 단위테스트
+npm run test:coverage   # 위 + 커버리지 표(--experimental-test-coverage)
 ```
 
-빌드·린트·테스트 설정은 없습니다 — `npm start`가 유일한 스크립트입니다.
+빌드·린트 설정은 없습니다. 테스트는 의존성 없이 Node 내장 `node:test`만 사용하며, `tests/`의 순수 파싱·렌더 함수(`parseCSV`·`parseDate`·`mapColumns`·`renderMarkdown` 등)만 겨냥합니다. `public/app.js`는 클래식 스크립트라 import가 안 되므로, `tests/helpers/load-app.js`가 `node:vm`으로 소스를 로드해 프로덕션 코드를 건드리지 않고 함수를 꺼내 씁니다. DOM 와이어링·서버 호출 경로는 의도적으로 테스트 범위 밖입니다.
 
 ## 아키텍처
 
