@@ -6,8 +6,8 @@
 
 - [`01_random-lunch-picker-mvp/`](./01_random-lunch-picker-mvp/) — 점심 메뉴 랜덤 추천기 MVP. 바닐라 HTML/CSS/JS에 빌드·린트·테스트 스크립트를 갖춘 작은 프로젝트.
 - [`02_vibe-coding/`](./02_vibe-coding/) — 카드·통장 내역서(CSV/Excel) 분석기. 파일을 올리면 카테고리·요일·월별·가맹점 TOP10을 차트로 보여주는 클라이언트 사이드 웹 앱(외부 의존성은 Excel 파싱용 SheetJS 1개).
+- [`03_agentic-engineering/`](./03_agentic-engineering/) — 채팅방 CSV 요약 도우미. CSV를 올려 기간을 고르면 OpenAI로 한국어 마크다운 요약을 만들어 주는 MVP. CLAUDE.md 기반 컨텍스트 엔지니어링, TDD 가드 훅, 스모크 테스트 스크립트 등 에이전틱 엔지니어링 실습을 함께 담았습니다.
 
 ## 예정
 
-- `03_agentic-engineering/` — 에이전틱 엔지니어링 실습
 - `04_harness-engineering/` — 하네스 엔지니어링 실습
