@@ -50,7 +50,7 @@ Date,User,Message
 
 | 파일 | 역할 |
 |------|------|
-| `server.js` | Express 서버: 정적 서빙 + `POST /api/summarize` (OpenAI 중계) |
+| `api/server.js` | Express 서버: 정적 서빙 + `POST /api/summarize` (OpenAI 중계) |
 | `public/index.html` | 화면 구조 |
 | `public/app.js` | CSV 파싱 · 통계 · 기간 필터 · 요약 호출 · 렌더링 |
 | `public/styles.css` | 스타일 |
