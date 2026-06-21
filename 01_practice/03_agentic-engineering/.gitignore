@@ -1,0 +1,38 @@
+# ── 03_agentic-engineering ──
+# This project is self-contained and unrelated to the other directories
+# in the monorepo. Keep its build artifacts and secrets scoped here.
+
+# macOS
+.DS_Store
+
+# Environment variables (never commit real secrets)
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build / cache output
+dist/
+build/
+.cache/
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+
+# Editor / IDE
+.vscode/
+.idea/
+
+# Python (in case of agent scripts)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
