@@ -12,6 +12,7 @@
 cp .env.example .env   # 그다음 OPENAI_API_KEY 채우기
 npm install
 npm start               # node api/server.js → http://localhost:3000
+npm run smoke           # 임시 포트로 서버를 띄워 핵심 엔드포인트 응답 검증 후 자동 종료 (키 불필요)
 npm test                # node --test → tests/ 의 핵심 순수함수 단위테스트
 npm run test:coverage   # 위 + 커버리지 표(--experimental-test-coverage)
 ```

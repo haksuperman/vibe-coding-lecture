@@ -39,6 +39,12 @@ const app = express();
 app.use(express.json({ limit: "8mb" }));
 app.use(express.static(path.join(__dirname, "..", "public")));
 
+// 헬스 체크 — 서버 기동 여부와 키 설정 여부를 키 노출 없이 확인한다.
+// 스모크 테스트·readiness 폴링용(scripts/smoke.sh).
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", hasKey: Boolean(process.env.OPENAI_API_KEY), model: MODEL });
+});
+
 app.post("/api/summarize", async (req, res) => {
   const { text, meta } = req.body || {};
 

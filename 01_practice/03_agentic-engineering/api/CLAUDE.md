@@ -6,7 +6,11 @@
 
 ## 서버가 하는 일
 
-최소한의 Express 서버(`server.js`)입니다: `../public/`를 정적으로 서빙하고, OpenAI chat-completions 호출을 감싸는 단일 엔드포인트 `POST /api/summarize`를 노출합니다. OpenAI 키는 서버의 `.env`에만 있고 클라이언트로는 절대 나가지 않습니다 — 서버가 존재하는 핵심 이유입니다.
+최소한의 Express 서버(`server.js`)입니다: `../public/`를 정적으로 서빙하고, OpenAI chat-completions 호출을 감싸는 핵심 엔드포인트 `POST /api/summarize`와 헬스 체크 `GET /api/health`를 노출합니다. OpenAI 키는 서버의 `.env`에만 있고 클라이언트로는 절대 나가지 않습니다 — 서버가 존재하는 핵심 이유입니다.
+
+## `GET /api/health`
+
+기동·readiness 확인용 경량 엔드포인트입니다. 응답: `{ status: "ok", hasKey, model }` — `hasKey`는 `OPENAI_API_KEY` 설정 여부(키 값은 노출하지 않음), `model`은 현재 모델명. `npm run smoke`(`../scripts/smoke.sh`)가 `sleep` 추측 대신 이 엔드포인트를 폴링해 기동을 확인하고, 이어서 `/`·`/api/summarize` 응답을 검증한 뒤 서버를 자동 종료합니다.
 
 ## `POST /api/summarize`
 
