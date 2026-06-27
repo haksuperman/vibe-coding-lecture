@@ -1,0 +1,63 @@
+{
+  "project": "CVE Insight",
+  "phase": "0-mvp",
+  "steps": [
+    {
+      "step": 0,
+      "name": "project-setup",
+      "status": "completed",
+      "started_at": "2026-06-27T22:17:22+0900",
+      "summary": "Next.js 15.3.9(App Router)+TS strict+Tailwind v4+Vitest+openai SDK 골격 구축. package.json/tsconfig(strict)/next.config.ts/postcss/eslint.config.mjs/vitest.config.ts, src/app(layout.tsx 다크테마·page.tsx·globals.css), src/{components,services,lib,types} 디렉토리, tests/smoke.test.ts 생성. build/lint/test 모두 통과."
+    },
+    {
+      "step": 1,
+      "name": "core-types",
+      "status": "completed",
+      "started_at": "2026-06-27T22:22:02+0900",
+      "summary": "src/types/index.ts에 전체 타입 정의(Severity, CveMetadata, AnalysisResult, AnalyzeRequest, AnalyzeResponse) + severityFromScore(score→Severity, 9.0+CRITICAL/7.0+HIGH/4.0+MEDIUM/0.1+LOW/그외·null UNKNOWN) 순수 함수. 경계값 테스트(index.test.ts) 10개 통과. ARCHITECTURE.md 타입과 정확히 일치. build/test 통과.",
+      "completed_at": "2026-06-27T22:23:06+0900"
+    },
+    {
+      "step": 2,
+      "name": "input-parsing",
+      "status": "completed",
+      "started_at": "2026-06-27T22:23:06+0900",
+      "summary": "src/lib/parse.ts에 extractCveId(text→CVE ID|null) 순수 함수 추가. 정규식 /CVE-\\d{4}-\\d{4,}/i로 번호 단독·URL·뉴스 텍스트에서 첫 CVE 추출, 대문자 정규화, 매칭 없으면 null. 네트워크/부수효과 없음. TDD로 parse.test.ts 7케이스(단독/소문자/URL/복수첫번째/5자리/없음/빈문자열) 작성·통과. ARCHITECTURE.md 시그니처 일치. build/test(18개) 통과.",
+      "completed_at": "2026-06-27T22:24:03+0900"
+    },
+    {
+      "step": 3,
+      "name": "nvd-service",
+      "status": "completed",
+      "started_at": "2026-06-27T22:24:03+0900",
+      "summary": "src/services/nvd.ts에 fetchCveMetadata(cveId→CveMetadata|null) 서버 전용 함수 추가. SDK 없이 fetch로 NVD REST v2 호출, NVD_API_KEY 있으면 apiKey 헤더(없어도 동작), AbortController 8초 타임아웃. 응답 매핑: description은 en 우선, cvssScore는 v3.1→v3.0→v2 순, severity는 severityFromScore 재사용, affectedProducts는 cpeMatch.criteria, references는 url 목록. 모든 실패(네트워크/404/빈응답/파싱)는 try/catch로 null 반환(throw 금지, 폴백). TDD로 nvd.test.ts 10케이스(fetch mock, 실제 호출 없음) 작성·통과. build/test(28개) 통과.",
+      "completed_at": "2026-06-27T22:25:48+0900"
+    },
+    {
+      "step": 4,
+      "name": "openai-service",
+      "status": "completed",
+      "started_at": "2026-06-27T22:25:48+0900",
+      "summary": "src/services/openai.ts에 analyzeCve({input, metadata}→AnalysisResult) 서버 전용 함수 추가. openai SDK 사용, 모델 OPENAI_MODEL ?? 'gpt-4o', OPENAI_API_KEY 미설정 시 throw(route가 500 변환). metadata 있으면 NVD 사실(CVSS·심각도·설명·영향제품·참조)을 컨텍스트로 주입, null이면 입력 텍스트만으로 분석. 시스템 프롬프트로 한국어 4필드 JSON 강제+안전한 학습용 시나리오(무기화 익스플로잇 금지). response_format json_object로 받아 4필드 파싱, 누락/파싱실패는 빈 문자열 보정. TDD로 openai.test.ts 8케이스(SDK mock, 실제 호출 없음: 파싱/모델기본·env/NVD주입유무/누락보정/파싱실패/키미설정 throw) 작성·통과. build/test(36개) 통과.",
+      "completed_at": "2026-06-27T22:27:46+0900"
+    },
+    {
+      "step": 5,
+      "name": "analyze-api",
+      "status": "completed",
+      "started_at": "2026-06-27T22:27:46+0900",
+      "summary": "src/app/api/analyze/route.ts에 POST 핸들러 추가. extractCveId→fetchCveMetadata(번호 있을 때만, 실패→null 폴백)→analyzeCve 조합 후 AnalyzeResponse(cveId/metadata/analysis) JSON 반환. 로직 재구현 없이 앞 step 함수 import 조합만. 입력 검증(input 비문자열/공백→400), analyzeCve throw→try/catch로 500+{error:'분석 실패'}(원인은 console.error 서버 로그만, 키/스택 미노출). Node 런타임 기본(Edge 미사용). TDD로 route.test.ts 5케이스(의존함수 mock: cveId추출 200/cveId없음 nvd미호출 200/빈input 400/비문자열 400/throw 500 민감정보미포함) 작성·통과. build/test(41개) 통과.",
+      "completed_at": "2026-06-27T22:29:18+0900"
+    },
+    {
+      "step": 6,
+      "name": "ui",
+      "status": "completed",
+      "started_at": "2026-06-27T22:29:18+0900",
+      "summary": "입력 폼·결과 UI를 /api/analyze와 연결. AnalyzeForm.tsx('use client', useState 4개 input/loading/result/error, textarea+예시칩+분석버튼, fetch POST /api/analyze, 4상태 빈/로딩스켈레톤/결과/에러+다시시도, 빈입력 시 버튼 disabled). ResultView.tsx(순수 표시, AnalyzeResponse props, 상단 cveId+CVSS배지 5심각도 매핑 🔴CRITICAL/🟠HIGH/🟡MEDIUM/⚪LOW·UNKNOWN, metadata null이면 'NVD 정보 없음' 표기, 4섹션 카드 📋🛠🔗🧪 whitespace-pre-wrap). page.tsx에 AnalyzeForm 배치. 다크 미니멀 무채색+위험도 포인트컬러. 클라이언트는 OpenAI/NVD 직접호출 없이 /api/analyze만 호출. 컴포넌트 테스트용 jsdom+@testing-library 추가, vitest esbuild jsx automatic+.test.tsx include. TDD로 ResultView(null표기+4섹션/severity별 배지 6) AnalyzeForm(빈입력 disabled/채우면 활성/예시칩 3) 9케이스 작성·통과. build/lint/test(50개) 통과. 런타임 분석은 OPENAI_API_KEY(.env.local) 필요.",
+      "completed_at": "2026-06-27T22:33:09+0900"
+    }
+  ],
+  "created_at": "2026-06-27T22:17:22+0900",
+  "completed_at": "2026-06-27T22:33:09+0900"
+}

@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# 환경변수 (실제 키는 커밋 금지, .env.example 만 커밋)
+.env
+.env.local
+.env*.local
+
+# phase execution outputs
+phases/**/phase*-output.json
+phases/**/step*-output.json
