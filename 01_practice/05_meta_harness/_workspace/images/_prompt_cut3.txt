@@ -1,0 +1,9 @@
+Style: soft cel-shaded Korean webtoon illustration, clean confident lineart, gentle gradient shading, medium-high saturation, cozy late-night home-office mood. Lighting: warm orange desk-lamp glow contrasting with cool blue monitor light. Vertical webtoon panel composition, cinematic depth. Digital beings (the AI mascot and the gremlin) have a soft luminous glow; the human is rendered in normal flat coloring. No text in speech bubbles (leave them empty for post-editing); only short English SFX/UI text where specified.
+
+Scene (Cut 3, hook): Medium two-shot, stable near-frontal angle with a slight high angle. In the center, a locked treasure-box labeled ".env" holds the now-calm Key-Gremlin sealed inside behind a padlock. Claudy floats above it giving a wink with one dot-eye. A terminal window shows green UI text: "Safe: key moved to .env, added to .gitignore". On the left, Dohyun wiping sweat off his forehead with a relieved, relaxed posture. In the lower-right corner, hidden in shadow, a faint ominous silhouette with glowing eyes and a small label "SQL INJECTION". Warm, relieved mood with green safety accents. Empty speech bubbles for Claudy and Dohyun.
+
+Character (Dohyun): Dohyun is a 28-year-old Korean male junior developer. Messy short black hair, dark circles, black thick-rimmed glasses, charcoal-gray hoodie over a black t-shirt. Relieved expression. Rendered in normal flat webtoon coloring, no glow.
+
+Character (Claudy): Claudy is a small palm-sized round AI mascot. Smooth matte coral-orange rounded body with a soft holographic glow. A single thin antenna ending in a glowing star-burst symbol. Two black dot eyes and a blinking terminal-cursor underscore mouth. Short rounded stub arms.
+
+Character (Key-Gremlin): The Key-Gremlin is shaped like a glossy brass key with two small red horns and a label tag reading "sk-live-...", now calm and sealed inside the .env box.
